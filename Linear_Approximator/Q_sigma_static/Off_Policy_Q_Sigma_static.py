@@ -171,7 +171,7 @@ def Q_Sigma_Off_Policy(env, theta, num_episodes, discount_factor=1.0, epsilon=0.
 
 
 			#select sigma value
-			sigma=binomial_sigma(0.5)
+			sigma_t_1=binomial_sigma(0.5)
 
 
 			#select next action based on the behaviour policy at next state
@@ -231,7 +231,7 @@ def take_average_results(experiment,num_experiments,num_episodes,env,theta):
 def main():
 	theta = np.random.normal(size=(400,env.action_space.n))
 	num_episodes = 1000
-	num_experiments=50
+	num_experiments=20
 	print ("Running for Total Episodes", num_episodes)
 	smoothing_window = 1
 
