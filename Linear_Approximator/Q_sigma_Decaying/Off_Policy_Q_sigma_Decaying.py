@@ -145,7 +145,7 @@ def Q_Sigma_Off_Policy_Decaying_Sigma(env, theta, num_episodes, discount_factor=
 
 		print "Epsisode Number Off Policy Q(sigma)", i_episode
 
-		off_policy = behaviour_policy_Boltzmann(theta, tau * epsilon_decay**i_episode, env.action_space.n)
+		off_policy = behaviour_policy_Boltzmann(theta, tau, env.action_space.n)
 		policy = make_epsilon_greedy_policy(theta, epsilon * epsilon_decay**i_episode, env.action_space.n)
 
 		state = env.reset()
@@ -155,7 +155,7 @@ def Q_Sigma_Off_Policy_Decaying_Sigma(env, theta, num_episodes, discount_factor=
 		for t in itertools.count():
 
 			if next_action is None:
-				action_probs = off_policy(state)
+				action_probs = policy(state)
 				action = np.random.choice(np.arange(len(action_probs)), p=action_probs)
 			else:
 				action = next_action
@@ -164,8 +164,6 @@ def Q_Sigma_Off_Policy_Decaying_Sigma(env, theta, num_episodes, discount_factor=
 
 			if done:
 				sigma_t_1 = sigma_t_1 * sigma_decay
-
-				print "Sigma Param", sigma_t_1
 
 				if sigma_t_1 < 0.0001:
 					sigma_t_1 = 0.0001
@@ -202,9 +200,7 @@ def Q_Sigma_Off_Policy_Decaying_Sigma(env, theta, num_episodes, discount_factor=
 			q_values_next_state_next_action = q_values_t_1[action_t_1]
 
 
-			on_policy_next_action_probs = policy(state_t_1)
-			on_policy_a_t_1 = np.random.choice(np.arange(len(on_policy_next_action_probs)), p = on_policy_next_action_probs)
-			V_t_1 = np.sum( on_policy_next_action_probs * q_values_t_1 )
+			V_t_1 = np.sum( next_action_probs * q_values_t_1 )
 
 			Delta_t = reward + discount_factor * ( sigma_t_1 * q_values_next_state_next_action + (1 - sigma_t_1) * V_t_1  ) - q_values_state_action
 

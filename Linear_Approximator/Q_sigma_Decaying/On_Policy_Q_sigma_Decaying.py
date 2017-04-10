@@ -131,7 +131,7 @@ def Q_Sigma_On_Policy(env, theta, num_episodes, discount_factor=1.0, epsilon=0.1
 	tau=1
 
 	sigma_t_1 = 1
-	sigma_decay = 0.
+	sigma_decay = 0.995
 
   
 	for i_episode in range(num_episodes):

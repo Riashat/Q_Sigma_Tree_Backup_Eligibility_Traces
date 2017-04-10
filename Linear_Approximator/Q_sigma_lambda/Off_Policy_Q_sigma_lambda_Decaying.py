@@ -181,9 +181,7 @@ def q_sigma_lambda_off_policy_decaying_sigma(env, theta, num_episodes, discount_
 			next_q_values_state_action = next_q_values[next_action]
 
 
-			on_policy_next_action_probs = policy(next_state)
-			on_policy_next_action = np.random.choice(np.arange(len(on_policy_next_action_probs)), p = on_policy_next_action_probs)
-			V = np.sum (on_policy_next_action_probs * next_q_values)
+			V = np.sum (next_action_probs * next_q_values)
 
 
 			Sigma_Effect = sigma * next_q_values_state_action + (1 - sigma) * V			

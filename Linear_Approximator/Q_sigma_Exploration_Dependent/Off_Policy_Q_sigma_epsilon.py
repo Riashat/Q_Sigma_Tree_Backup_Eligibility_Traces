@@ -159,7 +159,7 @@ def Q_Sigma_Off_Policy_Epsilon_Dependent(env, theta, num_episodes, discount_fact
 		for t in itertools.count():
 
 			if next_action is None:
-				action_probs = off_policy(state)
+				action_probs = policy(state)
 				action = np.random.choice(np.arange(len(action_probs)), p=action_probs)
 			else:
 				action = next_action
@@ -200,9 +200,7 @@ def Q_Sigma_Off_Policy_Epsilon_Dependent(env, theta, num_episodes, discount_fact
 			q_values_next_state_next_action = q_values_t_1[action_t_1]
 
 
-			on_policy_next_action_probs = policy(state_t_1)
-			on_policy_a_t_1 = np.random.choice(np.arange(len(on_policy_next_action_probs)), p = on_policy_next_action_probs)
-			V_t_1 = np.sum( on_policy_next_action_probs * q_values_t_1 )
+			V_t_1 = np.sum( next_action_probs * q_values_t_1 )
 
 			Delta_t = reward + discount_factor * ( sigma_t_1 * q_values_next_state_next_action + (1 - sigma_t_1) * V_t_1  ) - q_values_state_action
 
@@ -217,6 +215,7 @@ def Q_Sigma_Off_Policy_Epsilon_Dependent(env, theta, num_episodes, discount_fact
 
 			# estimator.update(state, action, new_td_target)
 			theta[:, action] += alpha * td_error * features_state
+			
 			rms_error = np.sqrt(np.sum((td_error)**2))
 			cumulative_errors[i_episode, :] += rms_error
 

@@ -21,6 +21,15 @@ from lib.envs.cliff_walking import CliffWalkingEnv
 from lib import plotting
 env = CliffWalkingEnv()
 
+from collections import defaultdict
+from lib.envs.cliff_walking import CliffWalkingEnv
+from lib.envs.windy_gridworld import WindyGridworldEnv
+from lib import plotting
+
+
+#env = CliffWalkingEnv()
+env=WindyGridworldEnv()
+
 
 
 # #with the mountaincar from openAi gym
@@ -121,7 +130,7 @@ def Q_Sigma_Off_Policy(env, theta, num_episodes, discount_factor=1.0, epsilon=0.
 
 		print "Epsisode Number Off Policy Q(sigma)", i_episode
 
-		off_policy = behaviour_policy_epsilon_greedy(theta, epsilon * epsilon_decay**i_episode, env.action_space.n)
+		off_policy = behaviour_policy_Boltzmann(theta, tau, env.action_space.n)
 		policy = make_epsilon_greedy_policy(theta, epsilon * epsilon_decay**i_episode, env.action_space.n)
 
 		state = env.reset()
@@ -131,7 +140,7 @@ def Q_Sigma_Off_Policy(env, theta, num_episodes, discount_factor=1.0, epsilon=0.
 		for t in itertools.count():
 
 			if next_action is None:
-				action_probs = off_policy(state)
+				action_probs = policy(state)
 				action = np.random.choice(np.arange(len(action_probs)), p=action_probs)
 			else:
 				action = next_action
@@ -171,9 +180,7 @@ def Q_Sigma_Off_Policy(env, theta, num_episodes, discount_factor=1.0, epsilon=0.
 			q_values_next_state_next_action = q_values_t_1[action_t_1]
 
 
-			on_policy_next_action_probs = policy(state_t_1)
-			on_policy_a_t_1 = np.random.choice(np.arange(len(on_policy_next_action_probs)), p = on_policy_next_action_probs)
-			V_t_1 = np.sum( on_policy_next_action_probs * q_values_t_1 )
+			V_t_1 = np.sum( next_action_probs * q_values_t_1 )
 
 			Delta_t = reward + discount_factor * ( sigma_t_1 * q_values_next_state_next_action + (1 - sigma_t_1) * V_t_1  ) - q_values_state_action
 

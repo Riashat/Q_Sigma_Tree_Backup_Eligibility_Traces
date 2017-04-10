@@ -179,10 +179,7 @@ def q_sigma_lambda_off_policy_dynamic_sigma(env, theta, num_episodes, alpha, lam
 			next_q_values = np.dot(theta.T, next_features_state)
 			next_q_values_state_action = next_q_values[next_action]
 
-
-			on_policy_next_action_probs = policy(next_state)
-			on_policy_next_action = np.random.choice(np.arange(len(on_policy_next_action_probs)), p = on_policy_next_action_probs)
-			V = np.sum (on_policy_next_action_probs * next_q_values)
+			V = np.sum (next_action_probs * next_q_values)
 
 			if state_count[state]>=5:
 				sigma = 1

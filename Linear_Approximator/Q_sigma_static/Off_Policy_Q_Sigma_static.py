@@ -95,6 +95,16 @@ def create_greedy_policy(theta, epsilon, nA):
 
 
 
+def behaviour_policy_epsilon_greedy(theta, epsilon, nA):
+    def policy_fn(observation):
+        A = np.ones(nA, dtype=float) * epsilon / nA
+        phi = featurize_state(observation)
+        q_values = np.dot(theta.T, phi)
+        best_action = np.argmax(q_values)
+        A[best_action] += (1.0 - epsilon)
+        return A
+    return policy_fn
+
 
 
 
@@ -146,7 +156,7 @@ def Q_Sigma_Off_Policy(env, theta, num_episodes, discount_factor=1.0, epsilon=0.
 		for t in itertools.count():
 
 			if next_action is None:
-				action_probs = off_policy(state)
+				action_probs = policy(state)
 				action = np.random.choice(np.arange(len(action_probs)), p=action_probs)
 			else:
 				action = next_action
@@ -186,9 +196,7 @@ def Q_Sigma_Off_Policy(env, theta, num_episodes, discount_factor=1.0, epsilon=0.
 			q_values_next_state_next_action = q_values_t_1[action_t_1]
 
 
-			on_policy_next_action_probs = policy(state_t_1)
-			on_policy_a_t_1 = np.random.choice(np.arange(len(on_policy_next_action_probs)), p = on_policy_next_action_probs)
-			V_t_1 = np.sum( on_policy_next_action_probs * q_values_t_1 )
+			V_t_1 = np.sum( next_action_probs * q_values_t_1 )
 
 			Delta_t = reward + discount_factor * ( sigma_t_1 * q_values_next_state_next_action + (1 - sigma_t_1) * V_t_1  ) - q_values_state_action
 
