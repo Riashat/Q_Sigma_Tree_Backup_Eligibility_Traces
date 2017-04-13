@@ -1,5 +1,6 @@
 import sys
-sys.path.insert(0, "/Users/Riashat/Documents/PhD_Research/Tree_Backup_Q_Sigma_Function_Approximation/Linear_Approximator/")
+sys.path.insert(0, "/Users/Riashat/Documents/PhD_Research/BASIC_ALGORITHMS/My_Implementations/Project_652/Code/Linear_Approximator/Exploration_Dependent_Sigma")
+sys.path.insert(0, "/Users/Riashat/Documents/PhD_Research/BASIC_ALGORITHMS/My_Implementations/Project_652/Code/Linear_Approximator/")
 import gym
 import itertools
 import matplotlib
@@ -85,36 +86,6 @@ def behaviour_policy_epsilon_greedy(theta, epsilon, nA):
     return policy_fn
 
 
-def create_greedy_policy(theta, epsilon, nA):
-    def policy_fn(observation):
-        A = np.zeros(nA, dtype=float) * epsilon / nA
-        phi = featurize_state(observation)
-        q_values = np.dot(theta.T, phi)
-        best_action = np.argmax(q_values)
-        A[best_action] = 1
-        return A
-    return policy_fn
-
-
-
-def behaviour_policy_epsilon_greedy(theta, epsilon, nA):
-    def policy_fn(observation):
-        A = np.ones(nA, dtype=float) * epsilon / nA
-        phi = featurize_state(observation)
-        q_values = np.dot(theta.T, phi)
-        best_action = np.argmax(q_values)
-        A[best_action] += (1.0 - epsilon)
-        return A
-    return policy_fn
-
-
-
-
-from numpy.random import binomial
-def binomial_sigma(p):
-	sample = binomial(n=1, p=p)
-	return sample
-
 def behaviour_policy_Boltzmann(theta, tau, nA):
     def policy_fn(observation):
         A = np.ones(nA, dtype=float) * tau / nA
@@ -129,7 +100,31 @@ def behaviour_policy_Boltzmann(theta, tau, nA):
 
 
 
-def Q_Sigma_Off_Policy(env, theta, num_episodes, discount_factor=1.0, epsilon=0.1, epsilon_decay=0.99):
+
+def create_greedy_policy(theta, epsilon, nA):
+    def policy_fn(observation):
+        A = np.zeros(nA, dtype=float) * epsilon / nA
+        phi = featurize_state(observation)
+        q_values = np.dot(theta.T, phi)
+        best_action = np.argmax(q_values)
+        A[best_action] = 1
+        return A
+    return policy_fn
+
+
+
+
+
+
+from numpy.random import binomial
+def binomial_sigma(p):
+	sample = binomial(n=1, p=p)
+	return sample
+
+
+
+
+def Q_Sigma_Off_Policy_Decaying_Sigma(env, theta, num_episodes, discount_factor=1.0, epsilon=0.1, epsilon_decay=0.999):
 
 	#q-learning algorithm with linear function approximation here
 
@@ -139,14 +134,16 @@ def Q_Sigma_Off_Policy(env, theta, num_episodes, discount_factor=1.0, epsilon=0.
 		episode_rewards=np.zeros(num_episodes)) 
 	cumulative_errors = np.zeros(shape=(num_episodes, 1)) 
 
-	alpha = 0.01
-	tau=1
+	alpha = 0.1
 
-  
+	sigma_t_1 = 1
+	sigma_decay = 0.998
+
+	tau = 1
+
 	for i_episode in range(num_episodes):
-		state_count=np.zeros(shape=(env.observation_space.n,1))
 
-		print ("Epsisode Number Off Policy Q(sigma)", i_episode)
+		print "Epsisode Number Off Policy Q(sigma)", i_episode
 
 		off_policy = behaviour_policy_Boltzmann(theta, tau, env.action_space.n)
 		policy = make_epsilon_greedy_policy(theta, epsilon * epsilon_decay**i_episode, env.action_space.n)
@@ -166,6 +163,11 @@ def Q_Sigma_Off_Policy(env, theta, num_episodes, discount_factor=1.0, epsilon=0.
 			state_t_1, reward, done, _ = env.step(action)
 
 			if done:
+				sigma_t_1 = sigma_t_1 * sigma_decay
+
+				if sigma_t_1 < 0.0001:
+					sigma_t_1 = 0.0001
+
 				break			
 
 			stats.episode_rewards[i_episode] += reward
@@ -181,11 +183,6 @@ def Q_Sigma_Off_Policy(env, theta, num_episodes, discount_factor=1.0, epsilon=0.
 			q_values_state_action = q_values[action]
 
 
-
-			#select sigma value
-			sigma_t_1=binomial_sigma(0.5)
-
-
 			#select next action based on the behaviour policy at next state
 			next_action_probs = off_policy(state_t_1)
 			action_t_1 = np.random.choice(np.arange(len(next_action_probs)), p = next_action_probs)
@@ -193,14 +190,19 @@ def Q_Sigma_Off_Policy(env, theta, num_episodes, discount_factor=1.0, epsilon=0.
 
 			# q_values_t_1 = estimator.predict(state_t_1)
 			# q_values_next_state_next_action = q_values_t_1[action_t_1]
+			on_policy_next_action_probs = policy(state_t_1)
+			on_policy_action_t_1 = np.random.choice(np.arange(len(on_policy_next_action_probs)), p = on_policy_next_action_probs)
+
+			# q_values_t_1 = estimator.predict(state_t_1)
+			# q_values_next_state_next_action = q_values_t_1[action_t_1]
 			features_state_1 = featurize_state(state_t_1)
 			q_values_t_1 = np.dot(theta.T, features_state_1)
-			q_values_next_state_next_action = q_values_t_1[action_t_1]
+			q_values_next_state_next_action = q_values_t_1[on_policy_action_t_1]
 
 
 			V_t_1 = np.sum( next_action_probs * q_values_t_1 )
 
-			Delta_t = reward + discount_factor * ( sigma_t_1 * q_values_next_state_next_action + (1 - sigma_t_1) * V_t_1  ) - q_values_state_action
+			Delta_t = reward + discount_factor * ( (1 - sigma_t_1) * q_values_next_state_next_action + sigma_t_1 * V_t_1  ) - q_values_state_action
 
 
 			"""
@@ -231,21 +233,23 @@ def take_average_results(experiment,num_experiments,num_episodes,env,theta):
 		error_mat[:,i]=cum_error.T
 		average_reward=np.mean(reward_mat,axis=1)
 		average_error=np.mean(error_mat,axis=1)
-		np.save('/Users/Riashat/Documents/PhD_Research/Tree_Backup_Q_Sigma_Function_Approximation/Linear_Approximator/Q_sigma_static/Results/'  + 'Qsigma_offpolicy_static_reward' + '.npy',average_reward)
-		np.save('/Users/Riashat/Documents/PhD_Research/Tree_Backup_Q_Sigma_Function_Approximation/Linear_Approximator/Q_sigma_static/Results/'  + 'Qsigma_offpolicy_static_error' + '.npy',average_error)
+
+		np.save('/Users/Riashat/Documents/PhD_Research/Tree_Backup_Q_Sigma_Function_Approximation/Mixture_Policy/Results/'  + 'mixture_q_sigma_decaying_rwd' + '.npy',average_reward)
+		np.save('/Users/Riashat/Documents/PhD_Research/Tree_Backup_Q_Sigma_Function_Approximation/Mixture_Policy/Results/'  + 'mixture_q_sigma_decaying_err' + '.npy',average_error)
 		
-	return(average_reward,average_error)
+		
+	return average_reward,average_error
 
 
 
 def main():
 	theta = np.random.normal(size=(400,env.action_space.n))
 	num_episodes = 1000
-	num_experiments=20
+	num_experiments=50
 	print ("Running for Total Episodes", num_episodes)
 	smoothing_window = 1
 
-	avg_cum_reward,avg_cum_error=take_average_results(Q_Sigma_Off_Policy,num_experiments,num_episodes,env,theta)
+	avg_cum_reward,avg_cum_error = take_average_results(Q_Sigma_Off_Policy_Decaying_Sigma,num_experiments,num_episodes,env,theta)
 	
 	env.close()
 

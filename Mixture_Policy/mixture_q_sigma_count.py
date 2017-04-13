@@ -1,5 +1,6 @@
 import sys
-sys.path.insert(0, "/Users/Riashat/Documents/PhD_Research/Tree_Backup_Q_Sigma_Function_Approximation/Linear_Approximator/")
+sys.path.insert(0, "/Users/Riashat/Documents/PhD_Research/BASIC_ALGORITHMS/My_Implementations/Project_652/Code/Linear_Approximator/Exploration_Dependent_Sigma")
+sys.path.insert(0, "/Users/Riashat/Documents/PhD_Research/BASIC_ALGORITHMS/My_Implementations/Project_652/Code/Linear_Approximator/")
 import gym
 import itertools
 import matplotlib
@@ -97,16 +98,6 @@ def create_greedy_policy(theta, epsilon, nA):
 
 
 
-def behaviour_policy_epsilon_greedy(theta, epsilon, nA):
-    def policy_fn(observation):
-        A = np.ones(nA, dtype=float) * epsilon / nA
-        phi = featurize_state(observation)
-        q_values = np.dot(theta.T, phi)
-        best_action = np.argmax(q_values)
-        A[best_action] += (1.0 - epsilon)
-        return A
-    return policy_fn
-
 
 
 
@@ -139,7 +130,7 @@ def Q_Sigma_Off_Policy(env, theta, num_episodes, discount_factor=1.0, epsilon=0.
 		episode_rewards=np.zeros(num_episodes)) 
 	cumulative_errors = np.zeros(shape=(num_episodes, 1)) 
 
-	alpha = 0.01
+	alpha = 0.1
 	tau=1
 
   
@@ -183,7 +174,10 @@ def Q_Sigma_Off_Policy(env, theta, num_episodes, discount_factor=1.0, epsilon=0.
 
 
 			#select sigma value
-			sigma_t_1=binomial_sigma(0.5)
+			if state_count[state]>=5:
+				sigma_t_1 = 1
+			else:
+				sigma_t_1=0
 
 
 			#select next action based on the behaviour policy at next state
@@ -191,11 +185,13 @@ def Q_Sigma_Off_Policy(env, theta, num_episodes, discount_factor=1.0, epsilon=0.
 			action_t_1 = np.random.choice(np.arange(len(next_action_probs)), p = next_action_probs)
 
 
-			# q_values_t_1 = estimator.predict(state_t_1)
-			# q_values_next_state_next_action = q_values_t_1[action_t_1]
+			on_policy_next_action_probs = policy(state_t_1)
+			on_policy_action_t_1 = np.random.choice(np.arange(len(on_policy_next_action_probs)), p = on_policy_next_action_probs)
+
+
 			features_state_1 = featurize_state(state_t_1)
 			q_values_t_1 = np.dot(theta.T, features_state_1)
-			q_values_next_state_next_action = q_values_t_1[action_t_1]
+			q_values_next_state_next_action = q_values_t_1[on_policy_action_t_1]
 
 
 			V_t_1 = np.sum( next_action_probs * q_values_t_1 )
@@ -231,8 +227,8 @@ def take_average_results(experiment,num_experiments,num_episodes,env,theta):
 		error_mat[:,i]=cum_error.T
 		average_reward=np.mean(reward_mat,axis=1)
 		average_error=np.mean(error_mat,axis=1)
-		np.save('/Users/Riashat/Documents/PhD_Research/Tree_Backup_Q_Sigma_Function_Approximation/Linear_Approximator/Q_sigma_static/Results/'  + 'Qsigma_offpolicy_static_reward' + '.npy',average_reward)
-		np.save('/Users/Riashat/Documents/PhD_Research/Tree_Backup_Q_Sigma_Function_Approximation/Linear_Approximator/Q_sigma_static/Results/'  + 'Qsigma_offpolicy_static_error' + '.npy',average_error)
+		np.save('/Users/Riashat/Documents/PhD_Research/Tree_Backup_Q_Sigma_Function_Approximation/Mixture_Policy/Results/'  + 'mixture_q_sigma_count_expl_rwd' + '.npy',average_reward)
+		np.save('/Users/Riashat/Documents/PhD_Research/Tree_Backup_Q_Sigma_Function_Approximation/Mixture_Policy/Results/'  + 'mixture_q_sigma_count_expl_err' + '.npy',average_error)
 		
 	return(average_reward,average_error)
 
@@ -241,7 +237,7 @@ def take_average_results(experiment,num_experiments,num_episodes,env,theta):
 def main():
 	theta = np.random.normal(size=(400,env.action_space.n))
 	num_episodes = 1000
-	num_experiments=20
+	num_experiments=50
 	print ("Running for Total Episodes", num_episodes)
 	smoothing_window = 1
 

@@ -20,8 +20,8 @@ from lib.envs.windy_gridworld import WindyGridworldEnv
 from lib import plotting
 
 
-#env = CliffWalkingEnv()
-env=WindyGridworldEnv()
+env = CliffWalkingEnv()
+
 
 
 
@@ -102,24 +102,8 @@ class ValueEstimator():
         return loss
 
 
-from numpy.random import binomial
-def binomial_sigma(p):
-    sample = binomial(n=1, p=p)
-    return sample
 
-
-def behaviour_epsilon_greedy_policy(estimator_value, epsilon, nA):
-    def policy_fn(observation):
-        A = np.ones(nA, dtype=float) * epsilon / nA
-        q_values = estimator_value.predict(observation)
-        best_action = np.argmax(q_values)
-        A[best_action] += (1.0 - epsilon)
-        return A
-    return policy_fn
-
-
-
-def actor_critic(env, estimator_policy, estimator_value, num_episodes, discount_factor=1.0, epsilon=0.1, epsilon_decay=0.99):
+def actor_critic(env, estimator_policy, estimator_value, num_episodes, discount_factor=1.0):
     """
     Actor Critic Algorithm. Optimizes the policy 
     function approximator using policy gradient.
@@ -139,6 +123,7 @@ def actor_critic(env, estimator_policy, estimator_value, num_episodes, discount_
     stats = plotting.EpisodeStats(
         episode_lengths=np.zeros(num_episodes),
         episode_rewards=np.zeros(num_episodes))    
+  
 
     cumulative_errors = np.zeros(shape=(num_episodes, 1))
 
@@ -150,7 +135,7 @@ def actor_critic(env, estimator_policy, estimator_value, num_episodes, discount_
         print "Number of Episodes", i_episode
 
         state = env.reset()
-        off_policy = behaviour_epsilon_greedy_policy(estimator_value, epsilon * epsilon_decay**i_episode, env.action_space.n)
+        
         episode = []
         
         # One step in the environment
@@ -168,39 +153,25 @@ def actor_critic(env, estimator_policy, estimator_value, num_episodes, discount_
             # Update statistics
             stats.episode_rewards[i_episode] += reward
             stats.episode_lengths[i_episode] = t
-            
-            # Calculate TD Target
-            q_value = estimator_value.predict(state)
-            q_value_state_action = q_value[action]
-
-
-
-            next_action_probs = off_policy(next_state)
+         
+            next_action_probs = estimator_policy.predict(next_state)
             next_action = np.random.choice(np.arange(len(next_action_probs)), p=next_action_probs)
 
-            """
-            Binomially varying sigma parameter
-            """
-            sigma_t_1=binomial_sigma(0.5)
+            # Calculate TD Target
+            value = estimator_value.predict(next_state)
+            value_next = value[next_action]
 
-
-            q_value_next = estimator_value.predict(next_state)
-            q_value_next_state_next_action = q_value_next[next_action]
-
-            V = np.sum(next_action_probs * q_value_next_state_next_action )
-
-
-            td_target = reward + discount_factor * (sigma_t_1 * q_value_next_state_next_action + ( 1 - sigma_t_1) * V)
-            td_error = td_target - q_value_state_action
+            td_target = reward + discount_factor * value_next
+            td_error = td_target - estimator_value.predict(state)
             rms_error = np.sqrt(np.sum((td_error)**2))
             cumulative_errors[i_episode, :] += rms_error
 
 
             # Update the value estimator and policy estimator
             estimator_value.update(state, td_target)
+            
             estimator_policy.update(state, td_error, action)
             
-
 
             if done:
                 break
@@ -208,7 +179,8 @@ def actor_critic(env, estimator_policy, estimator_value, num_episodes, discount_
             state = next_state
     
     return stats, cumulative_errors
-    # return stats
+
+
 
 
 
@@ -225,8 +197,8 @@ def take_average_results(experiment,num_experiments,num_episodes,env,policy_esti
         average_reward = np.mean(reward_mat,axis=1)
         average_error = np.mean(error_mat,axis=1)
 
-        np.save('/Users/Riashat/Documents/PhD_Research/Tree_Backup_Q_Sigma_Function_Approximation/Actor_Critic_Q_sigma/Results/'  + 'Unified_Static_Sigma_OffPolicy_AC_Rwd' + '.npy', average_reward)
-        np.save('/Users/Riashat/Documents/PhD_Research/Tree_Backup_Q_Sigma_Function_Approximation/Actor_Critic_Q_sigma/Results/'  + 'Unified_Static_Sigma_OffPolicy_AC_Err' + '.npy', average_error)
+        np.save('/Users/Riashat/Documents/PhD_Research/Tree_Backup_Q_Sigma_Function_Approximation/Actor_Critic_Q_sigma/Cliff_Walking_Environment/Results/'  + 'On_Policy_Actor_Critic_Rwd' + '.npy', average_reward)
+        np.save('/Users/Riashat/Documents/PhD_Research/Tree_Backup_Q_Sigma_Function_Approximation/Actor_Critic_Q_sigma/Cliff_Walking_Environment/Results/'  + 'On_Policy_Actor_Critic_Err' + '.npy', average_error)
         
     return average_reward,average_error
 
@@ -252,27 +224,4 @@ def main():
 
 if __name__ == '__main__':
 	main()
-
-
-
-# def main():
-
-#     tf.reset_default_graph()
-
-#     global_step = tf.Variable(0, name="global_step", trainable=False)
-#     policy_estimator = PolicyEstimator()
-#     value_estimator = ValueEstimator()
-
-#     with tf.Session() as sess:
-#         sess.run(tf.global_variables_initializer())
-#         # Note, due to randomness in the policy the number of episodes you need to learn a good
-#         # policy may vary. ~300 seemed to work well for me.
-#         stats = actor_critic(env, policy_estimator, value_estimator, 300)
-
-
-#     plotting.plot_episode_stats(stats, smoothing_window=25)
-
-# if __name__ == '__main__':
-#     main()
-
 

@@ -216,8 +216,8 @@ def take_average_results(experiment,num_experiments,num_episodes,env,policy_esti
         average_reward = np.mean(reward_mat,axis=1)
         average_error = np.mean(error_mat,axis=1)
 
-        np.save('/Users/Riashat/Documents/PhD_Research/BASIC_ALGORITHMS/My_Implementations/Project_652/Actor_Critic_Q_sigma/Results/'  + 'Off_Policy_Actor_Critic_Rwd' + '.npy', average_reward)
-        np.save('/Users/Riashat/Documents/PhD_Research/BASIC_ALGORITHMS/My_Implementations/Project_652/Actor_Critic_Q_sigma/Results/'  + 'Off_Policy_Actor_Critic_Err' + '.npy', average_error)
+        np.save('/Users/Riashat/Documents/PhD_Research/Tree_Backup_Q_Sigma_Function_Approximation/Actor_Critic_Q_sigma/Results/'  + 'Off_Policy_Actor_Critic_Rwd' + '.npy', average_reward)
+        np.save('/Users/Riashat/Documents/PhD_Research/Tree_Backup_Q_Sigma_Function_Approximation/Actor_Critic_Q_sigma/Results/'  + 'Off_Policy_Actor_Critic_Err' + '.npy', average_error)
         
     return average_reward,average_error
 
@@ -230,7 +230,7 @@ def main():
     policy_estimator = PolicyEstimator()
     value_estimator = ValueEstimator()
 
-    num_episodes=300
+    num_episodes=1000
     num_experiments = 20
 
     with tf.Session() as sess:

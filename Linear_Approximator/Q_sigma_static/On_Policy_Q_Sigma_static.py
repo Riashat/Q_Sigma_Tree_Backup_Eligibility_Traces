@@ -1,3 +1,5 @@
+import sys
+sys.path.insert(0, "/Users/Riashat/Documents/PhD_Research/Tree_Backup_Q_Sigma_Function_Approximation/Linear_Approximator/")
 import gym
 import itertools
 import matplotlib
@@ -221,8 +223,8 @@ def take_average_results(experiment,num_experiments,num_episodes,env,theta):
 		error_mat[:,i]=cum_error.T
 		average_reward=np.mean(reward_mat,axis=1)
 		average_error=np.mean(error_mat,axis=1)
-		np.save('/home/raihan/Desktop/Final_Project_Codes/Windy_GridWorld/Experimental_Results /binomial_sigma/'  + 'Qsigma_onpolicy_reward' + '.npy',average_reward)
-		np.save('/home/raihan/Desktop/Final_Project_Codes/Windy_GridWorld/Experimental_Results /binomial_sigma/'  + 'Qsigma_onpolicy_error' + '.npy',average_error)
+		np.save('/Users/Riashat/Documents/PhD_Research/Tree_Backup_Q_Sigma_Function_Approximation/Linear_Approximator/Q_sigma_static/Results/'  + 'Qsigma_onpolicy_static_reward' + '.npy',average_reward)
+		np.save('/Users/Riashat/Documents/PhD_Research/Tree_Backup_Q_Sigma_Function_Approximation/Linear_Approximator/Q_sigma_static/Results/'  + 'Qsigma_onpolicy_static_error' + '.npy',average_error)
 		
 	return(average_reward,average_error)
 
