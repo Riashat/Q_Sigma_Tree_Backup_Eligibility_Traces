@@ -135,7 +135,7 @@ def Q_Sigma_Off_Policy_Epsilon_Dependent(env, theta, num_episodes, discount_fact
 		episode_rewards=np.zeros(num_episodes)) 
 	cumulative_errors = np.zeros(shape=(num_episodes, 1)) 
 
-	alpha = 0.01
+	alpha = 0.1
 	tau = 1.0
 
 
