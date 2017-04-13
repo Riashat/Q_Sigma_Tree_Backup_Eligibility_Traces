@@ -187,7 +187,7 @@ def actor_critic(env, estimator_policy, estimator_value, num_episodes, discount_
             q_value_next = estimator_value.predict(next_state)
             q_value_next_state_next_action = q_value_next[next_action]
 
-            V = np.sum(next_action_probs * q_value_next_state_next_action )
+            V = np.sum(next_action_probs * q_value_next )
 
 
             td_target = reward + discount_factor * (sigma_t_1 * q_value_next_state_next_action + ( 1 - sigma_t_1) * V)
@@ -239,7 +239,7 @@ def main():
     policy_estimator = PolicyEstimator()
     value_estimator = ValueEstimator()
 
-    num_episodes=1000
+    num_episodes=500
     num_experiments = 20
 
     with tf.Session() as sess:
