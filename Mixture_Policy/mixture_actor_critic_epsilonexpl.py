@@ -183,6 +183,15 @@ def actor_critic(env, estimator_policy, estimator_value, num_episodes, discount_
             q_value = estimator_value.predict(state)
             q_value_state_action = q_value[action]
 
+            """
+            Select sigma based on Epsilon-Greedy Exploration
+            """
+            if np.random.rand() < epsilon_sigma:
+                sigma_t_1 = 0
+            else:
+                sigma_t_1 = 1
+
+
             next_action_probs = off_policy(next_state)
             next_action = np.random.choice(np.arange(len(next_action_probs)), p=next_action_probs)
 
@@ -196,13 +205,6 @@ def actor_critic(env, estimator_policy, estimator_value, num_episodes, discount_
             td_target = reward + discount_factor * (sigma_t_1 * q_value_next_state_next_action + ( 1 - sigma_t_1) * V)
 
 
-            """
-            Select sigma based on Epsilon-Greedy Exploration
-            """
-            if np.random.rand() < epsilon_sigma:
-                sigma_t_1 = 0
-            else:
-                sigma_t_1 = 1
 
 
             td_error = td_target - q_value_state_action

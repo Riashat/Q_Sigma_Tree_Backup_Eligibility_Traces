@@ -9,18 +9,18 @@ eps = 1000
 eps = range(eps)
 
 
-off_policy_ac = np.load('Off_Policy_Actor_Critic_Rwd.npy')
-static_sigma_off_ac = np.load('Unified_Static_Sigma_OffPolicy_AC_Rwd.npy')
-decaying_sigma_off_ac = np.load('Unified_Decaying_Sigma_OffPolicy_AC_Rwd.npy')
-count_expl_sigma_off_ac = np.load('Unified_Expl_Count_Sigma_OffPolicy_AC_Rwd.npy')
-epsilon_expl_sigma_off_ac = np.load('Unified_Expl_Epsilon_Sigma_OffPolicy_AC_Rwd.npy')
+# off_policy_ac = np.load('Off_Policy_Actor_Critic_Rwd.npy')
+# static_sigma_off_ac = np.load('Unified_Static_Sigma_OffPolicy_AC_Rwd.npy')
+# decaying_sigma_off_ac = np.load('Unified_Decaying_Sigma_OffPolicy_AC_Rwd.npy')
+# count_expl_sigma_off_ac = np.load('Unified_Expl_Count_Sigma_OffPolicy_AC_Rwd.npy')
+# epsilon_expl_sigma_off_ac = np.load('Unified_Expl_Epsilon_Sigma_OffPolicy_AC_Rwd.npy')
 
 
-on_policy_ac = np.load('On_Policy_Actor_Critic_Rwd.npy')
-static_sigma_on_ac = np.load('Unified_Static_Sigma_OnPolicy_AC_Rwd.npy')
-decaying_sigma_on_ac = np.load('Unified_Decay_Sigma_OnPolicy_AC_Rwd.npy')
-count_expl_sigma_on_ac = np.load('Unified_Expl_Count_Sigma_OnPolicy_AC_Rwd.npy')
-epsilon_expl_sigma_on_ac = np.load('Unified_Expl_Epsilon_Sigma_OnPolicy_AC_Rwd.npy')
+# on_policy_ac = np.load('On_Policy_Actor_Critic_Rwd.npy')
+# static_sigma_on_ac = np.load('Unified_Static_Sigma_OnPolicy_AC_Rwd.npy')
+# decaying_sigma_on_ac = np.load('Unified_Decay_Sigma_OnPolicy_AC_Rwd.npy')
+# count_expl_sigma_on_ac = np.load('Unified_Expl_Count_Sigma_OnPolicy_AC_Rwd.npy')
+# epsilon_expl_sigma_on_ac = np.load('Unified_Expl_Epsilon_Sigma_OnPolicy_AC_Rwd.npy')
 
 
 def off_policy_comparison(stats1, stats2, stats3,  stats4, stats5, smoothing_window=50, noshow=False):
@@ -80,21 +80,48 @@ def on_policy_comparison(stats1, stats2, stats3,  stats4, stats5, smoothing_wind
 
 
 
-eps = 500
+# eps = 500
+# eps = range(eps)
+
+
+# off_policy_ac = off_policy_ac[0:500]
+# static_sigma_off_ac = static_sigma_off_ac
+# decaying_sigma_off_ac = decaying_sigma_off_ac
+# count_expl_sigma_off_ac = count_expl_sigma_off_ac
+# epsilon_expl_sigma_off_ac = epsilon_expl_sigma_off_ac
+
+# on_policy_ac = on_policy_ac[0:500]
+# static_sigma_on_ac = static_sigma_on_ac
+# decaying_sigma_on_ac = decaying_sigma_on_ac
+# count_expl_sigma_on_ac = count_expl_sigma_on_ac
+# epsilon_expl_sigma_on_ac = epsilon_expl_sigma_on_ac
+
+
+
+
+on_policy_ac = np.load('On_Policy_Actor_Critic_Rwd.npy')
+eps = 3000
 eps = range(eps)
 
 
-off_policy_ac = off_policy_ac[0:500]
-static_sigma_off_ac = static_sigma_off_ac
-decaying_sigma_off_ac = decaying_sigma_off_ac
-count_expl_sigma_off_ac = count_expl_sigma_off_ac
-epsilon_expl_sigma_off_ac = epsilon_expl_sigma_off_ac
+def single_plot(stats1,  smoothing_window=100, noshow=False):
 
-on_policy_ac = on_policy_ac[0:500]
-static_sigma_on_ac = static_sigma_on_ac
-decaying_sigma_on_ac = decaying_sigma_on_ac
-count_expl_sigma_on_ac = count_expl_sigma_on_ac
-epsilon_expl_sigma_on_ac = epsilon_expl_sigma_on_ac
+    fig = plt.figure(figsize=(30, 20))
+    rewards_smoothed_1 = pd.Series(stats1).rolling(smoothing_window, min_periods=smoothing_window).mean()
+
+
+
+    cum_rwd_1, = plt.plot(eps, rewards_smoothed_1, label="On Policy Actor-Critic")    
+    plt.legend(handles=[cum_rwd_1])
+
+    plt.xlabel("Epsiode")
+    plt.ylabel("Epsiode Reward (Smoothed)")
+    # plt.ylim((-200, 10))
+    plt.title("On-Policy Actor-Critic and Unified Actor-Critic - Windy Grid World Environment")  
+    plt.show()
+
+    return fig
+
 
 
 
@@ -103,8 +130,8 @@ epsilon_expl_sigma_on_ac = epsilon_expl_sigma_on_ac
 def main():
 
    #off_policy_comparison(off_policy_ac, static_sigma_off_ac, decaying_sigma_off_ac, count_expl_sigma_off_ac, epsilon_expl_sigma_off_ac)
-   on_policy_comparison(on_policy_ac, static_sigma_on_ac, decaying_sigma_on_ac, count_expl_sigma_on_ac, epsilon_expl_sigma_on_ac)
-
+   #on_policy_comparison(on_policy_ac, static_sigma_on_ac, decaying_sigma_on_ac, count_expl_sigma_on_ac, epsilon_expl_sigma_on_ac)
+   single_plot(on_policy_ac)
 
 
 
